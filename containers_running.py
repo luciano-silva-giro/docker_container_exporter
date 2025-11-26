@@ -15,6 +15,7 @@ def main():
     - Number of running Docker containers
     - Number of stopped Docker containers
     - Number of Docker containers in other states (not running or stopped)
+    - Individual container state with labels (name, status, id)
 
     The function retrieves all containers, counts them based on their status, and updates the Prometheus gauges accordingly.
     It also logs the container counts with a timestamp in ISO format.
@@ -47,6 +48,13 @@ def main():
         "Number of Docker containers in other states (not running or stopped)",
     )
 
+    # Individual container state metric with labels
+    container_state_gauge = Gauge(
+        "docker_container_state",
+        "State of individual Docker containers (1=running, 0=stopped/other)",
+        ["container_name", "container_id", "status"]
+    )
+
     # Start the Prometheus HTTP server on the specified port
     PORT = int(os.getenv("PORT", 9000))
     start_http_server(PORT)
@@ -64,8 +72,28 @@ def main():
             stopped_count = 0
             others_count = 0
 
-            # Count containers based on their status
+            # Track current containers to clean up stale metrics
+            current_containers = set()
+
+            # Count containers based on their status and update individual metrics
             for container in all_containers:
+                container_name = container.name
+                container_id = container.short_id
+                
+                # Track this container
+                current_containers.add(container_id)
+                
+                # Set state value: 1 for running, 0 for stopped/other
+                state_value = 1 if status == "running" else 0
+                
+                # Update individual container metric
+                container_state_gauge.labels(
+                    container_name=container_name,
+                    container_id=container_id,
+                    status=status
+                ).set(state_value)
+                
+                # Count by status
                 status = container.status
                 if status == "running":
                     running_count += 1
@@ -86,7 +114,7 @@ def main():
             )
 
             # Wait before updating metrics again
-            time.sleep(10)
+            time.sleep(60)
         except Exception as e:
             # Log the error with timestamp in ISO format (Line 54)
             current_time = datetime.now().isoformat()
