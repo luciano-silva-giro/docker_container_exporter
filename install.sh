@@ -4,7 +4,7 @@ set -e
 # Configuration
 INSTALL_DIR="/opt/docker_container_exporter"
 SERVICE_NAME="docker-container-exporter"
-REPO_URL="https://github.com/oriolrius/docker_container_exporter.git"
+REPO_URL="https://github.com/luciano-silva-giro/docker_container_exporter.git"
 PORT="${PORT:-9000}"
 USER="${SUDO_USER:-$USER}"
 

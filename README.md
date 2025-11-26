@@ -31,7 +31,7 @@ The `docker_container_state` metric allows you to track individual containers an
 Install the exporter as a systemd service on any Linux machine with a single command:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/oriolrius/docker_container_exporter/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/luciano-silva-giro/docker_container_exporter/main/install.sh | sudo bash
 ```
 
 This will:
@@ -44,7 +44,7 @@ This will:
 To use a custom port:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/oriolrius/docker_container_exporter/main/install.sh | sudo PORT=8080 bash
+curl -fsSL https://raw.githubusercontent.com/luciano-silva-giro/docker_container_exporter/main/install.sh | sudo PORT=8080 bash
 ```
 
 After installation, metrics will be available at `http://localhost:9000/metrics`
@@ -60,7 +60,7 @@ After installation, metrics will be available at `http://localhost:9000/metrics`
 1. **Clone the repository:**
 
     ```sh
-    git clone git@github.com:oriolrius/docker_container_exporter.git
+    git clone git@github.com:luciano-silva-giro/docker_container_exporter.git
     cd docker_container_exporter
     ```
 
@@ -102,8 +102,8 @@ After installation, metrics will be available at `http://localhost:9000/metrics`
 1. Get files `docker-compose.yml` and `.env` from the repository.
 
     ```sh
-    wget https://raw.githubusercontent.com/oriolrius/docker_container_exporter/main/docker-compose.yml
-    wget https://raw.githubusercontent.com/oriolrius/docker_container_exporter/main/.env
+    wget https://raw.githubusercontent.com/luciano-silva-giro/docker_container_exporter/main/docker-compose.yml
+    wget https://raw.githubusercontent.com/luciano-silva-giro/docker_container_exporter/main/.env
     ```
 
 1. Edit them to set the desired configuration.
