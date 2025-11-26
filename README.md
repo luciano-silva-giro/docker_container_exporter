@@ -9,21 +9,51 @@ The exporter exposes the following metrics:
 - `docker_containers_running_total`: Number of running Docker containers
 - `docker_containers_stopped_total`: Number of stopped Docker containers
 - `docker_containers_other_total`: Number of Docker containers in other states (not running or stopped)
+- `docker_container_state`: State of individual Docker containers with labels (1=running, 0=stopped/other)
+  - Labels: `container_name`, `container_id`, `status`
+
+The `docker_container_state` metric allows you to track individual containers and create alerts in Prometheus/Alertmanager for specific containers that start or stop.
 
 ## Table of contents
 
+- [Quick Installation](#quick-installation)
 - [Requirements](#requirements)
 - [Development](#development)
 - [Running the Application](#running-the-application)
   - [Using Python](#using-python)
   - [Using Docker](#using-docker)
+  - [As a Linux Service](#as-a-linux-service)
 - [Configuration](#configuration)
+- [Alerting Examples](#alerting-examples)
+
+## Quick Installation
+
+Install the exporter as a systemd service on any Linux machine with a single command:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/oriolrius/docker_container_exporter/main/install.sh | sudo bash
+```
+
+This will:
+- Install Python and dependencies
+- Clone the repository to `/opt/docker_container_exporter`
+- Set up a virtual environment
+- Create and start a systemd service
+- Expose metrics on port 9000 (configurable)
+
+To use a custom port:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/oriolrius/docker_container_exporter/main/install.sh | sudo PORT=8080 bash
+```
+
+After installation, metrics will be available at `http://localhost:9000/metrics`
 
 ## Requirements
 
 - Docker
-- Python 3.10
-- Prometheus
+- Python 3.10+
+- Prometheus (for scraping metrics)
 
 ## Development
 
@@ -65,7 +95,7 @@ The exporter exposes the following metrics:
 
 2. **Access the Prometheus metrics:**
 
-    Open your browser and go to [`http://localhost:8118/metrics`](command:_github.copilot.openSymbolFromReferences?%5B%22http%3A%2F%2Flocalhost%3A8118%2Fmetrics%22%2C%5B%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fcontainers_running.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fcontainers_running.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fcontainers_running.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A21%2C%22character%22%3A44%7D%7D%2C%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fdocker%2Fapi%2Fbuild.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fdocker%2Fapi%2Fbuild.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fdocker%2Fapi%2Fbuild.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A143%2C%22character%22%3A31%7D%7D%2C%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A416%2C%22character%22%3A47%7D%7D%2C%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib64%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib64%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib64%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A416%2C%22character%22%3A47%7D%7D%5D%5D "Go to definition").
+    Open your browser and go to `http://localhost:9000/metrics`.
 
 ### Using Docker
 
@@ -91,7 +121,88 @@ The exporter exposes the following metrics:
 
 1. **Access the Prometheus metrics:**
 
-    Open your browser and go to [`http://localhost:8118/metrics`](command:_github.copilot.openSymbolFromReferences?%5B%22http%3A%2F%2Flocalhost%3A8118%2Fmetrics%22%2C%5B%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fcontainers_running.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fcontainers_running.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fcontainers_running.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A21%2C%22character%22%3A44%7D%7D%2C%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fdocker%2Fapi%2Fbuild.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fdocker%2Fapi%2Fbuild.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fdocker%2Fapi%2Fbuild.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A143%2C%22character%22%3A31%7D%7D%2C%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A416%2C%22character%22%3A47%7D%7D%2C%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib64%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib64%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22path%22%3A%22%2Fdocker-data%2Fcontainers_running%2Fvenv%2Flib64%2Fpython3.10%2Fsite-packages%2Fsetuptools%2F_distutils%2Fcommand%2Fbdist_rpm.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A416%2C%22character%22%3A47%7D%7D%5D%5D "Go to definition").
+    Open your browser and go to `http://localhost:9000/metrics`.
+
+### As a Linux Service
+
+To run the exporter as a systemd service:
+
+1. **Copy the service file:**
+
+    ```sh
+    sudo cp docker-container-exporter.service /etc/systemd/system/
+    ```
+
+2. **Edit the service file to set your paths and user:**
+
+    ```sh
+    sudo nano /etc/systemd/system/docker-container-exporter.service
+    ```
+
+    Update `User`, `WorkingDirectory`, and `ExecStart` paths.
+
+3. **Enable and start the service:**
+
+    ```sh
+    sudo systemctl daemon-reload
+    sudo systemctl enable docker-container-exporter
+    sudo systemctl start docker-container-exporter
+    ```
+
+4. **Check status:**
+
+    ```sh
+    sudo systemctl status docker-container-exporter
+    sudo journalctl -u docker-container-exporter -f
+    ```
+
+## Configuration
+
+The exporter uses the `PORT` environment variable to configure the HTTP server port (default: 9000).
+
+## Alerting Examples
+
+With the `docker_container_state` metric, you can create alerts in Prometheus/Alertmanager for specific containers:
+
+### Alert when any container stops
+
+```yaml
+groups:
+  - name: docker_containers
+    rules:
+      - alert: ContainerStopped
+        expr: docker_container_state{status="exited"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.container_name }} has stopped"
+          description: "Container {{ $labels.container_name }} (ID: {{ $labels.container_id }}) is no longer running"
+```
+
+### Alert when a specific container stops
+
+```yaml
+      - alert: CriticalContainerStopped
+        expr: docker_container_state{container_name="my-important-app", status="exited"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical container my-important-app has stopped"
+```
+
+### Alert when a container starts
+
+```yaml
+      - alert: ContainerStarted
+        expr: docker_container_state{status="running"} == 1
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Container {{ $labels.container_name }} is now running"
+```
 
 ## Grafana Alloy
 
@@ -104,7 +215,7 @@ Next you can see an example of the configuration for Alloy to collect the metric
 ```config.alloy
 prometheus.scrape "node_containers" {
   targets    = [
-    { "__address__" = "localhost:8118",
+    { "__address__" = "localhost:9000",
       "__scheme__" = "http",
       "instance" = "iiot",
       "job" = "node_containers",
