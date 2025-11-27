@@ -60,6 +60,9 @@ def main():
     start_http_server(PORT)
     print(f"Prometheus metrics available at http://localhost:{PORT}/metrics")
 
+    # Track previous container states to detect changes
+    previous_states = {}
+
     while True:
         try:
             # Get all containers
@@ -72,8 +75,8 @@ def main():
             stopped_count = 0
             others_count = 0
 
-            # Track current containers to clean up stale metrics
-            current_containers = set()
+            # Track current container states
+            current_states = {}
 
             # Count containers based on their status and update individual metrics
             for container in all_containers:
@@ -81,8 +84,15 @@ def main():
                 container_id = container.short_id
                 status = container.status
                 
-                # Track this container
-                current_containers.add(container_id)
+                # Store current state
+                current_states[container_id] = (container_name, status)
+                
+                # If status changed, clear the old metric
+                if container_id in previous_states:
+                    old_name, old_status = previous_states[container_id]
+                    if old_status != status:
+                        # Remove old status metric
+                        container_state_gauge.remove(old_name, container_id, old_status)
                 
                 # Set state value: 1 for running, 0 for stopped/other
                 state_value = 1 if status == "running" else 0
@@ -101,6 +111,14 @@ def main():
                     stopped_count += 1
                 else:
                     others_count += 1
+            
+            # Remove metrics for containers that no longer exist
+            for old_id, (old_name, old_status) in previous_states.items():
+                if old_id not in current_states:
+                    container_state_gauge.remove(old_name, old_id, old_status)
+            
+            # Update previous states
+            previous_states = current_states
 
             # Update Prometheus gauges
             running_containers_gauge.set(running_count)
