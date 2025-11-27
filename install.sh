@@ -25,10 +25,6 @@ echo "Installing system dependencies..."
 if command -v apt-get &> /dev/null; then
     apt-get update
     apt-get install -y python3 python3-pip python3-venv git
-elif command -v dnf &> /dev/null; then
-    dnf install -y python3 python3-pip git
-elif command -v yum &> /dev/null; then
-    yum install -y python3 python3-pip git
 else
     echo "Unsupported package manager. Please install python3, pip, and git manually."
     exit 1

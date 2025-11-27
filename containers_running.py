@@ -79,6 +79,7 @@ def main():
             for container in all_containers:
                 container_name = container.name
                 container_id = container.short_id
+                status = container.status
                 
                 # Track this container
                 current_containers.add(container_id)
@@ -94,7 +95,6 @@ def main():
                 ).set(state_value)
                 
                 # Count by status
-                status = container.status
                 if status == "running":
                     running_count += 1
                 elif status == "exited":
