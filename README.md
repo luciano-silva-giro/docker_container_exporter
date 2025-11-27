@@ -47,7 +47,7 @@ To use a custom port:
 curl -fsSL https://raw.githubusercontent.com/luciano-silva-giro/docker_container_exporter/master/install.sh | sudo PORT=8080 bash
 ```
 
-After installation, metrics will be available at `http://localhost:9000/metrics`
+After installation, metrics will be available at `http://localhost:9102/metrics`
 
 ## Requirements
 
@@ -80,7 +80,7 @@ After installation, metrics will be available at `http://localhost:9000/metrics`
 1. **Configure the default port:**
 
     ```sh
-    export PORT=9000
+    export PORT=9102
     ```
 
 ## Running the Application
@@ -121,7 +121,7 @@ After installation, metrics will be available at `http://localhost:9000/metrics`
 
 1. **Access the Prometheus metrics:**
 
-    Open your browser and go to `http://localhost:9000/metrics`.
+    Open your browser and go to `http://localhost:9102/metrics`.
 
 ### As a Linux Service
 
@@ -158,7 +158,7 @@ To run the exporter as a systemd service:
 
 ## Configuration
 
-The exporter uses the `PORT` environment variable to configure the HTTP server port (default: 9000).
+The exporter uses the `PORT` environment variable to configure the HTTP server port (default: 9102).
 
 ## Alerting Examples
 

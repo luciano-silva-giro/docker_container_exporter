@@ -56,7 +56,7 @@ def main():
     )
 
     # Start the Prometheus HTTP server on the specified port
-    PORT = int(os.getenv("PORT", 9000))
+    PORT = int(os.getenv("PORT", 9102))
     start_http_server(PORT)
     print(f"Prometheus metrics available at http://localhost:{PORT}/metrics")
 

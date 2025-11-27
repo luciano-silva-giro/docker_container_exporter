@@ -5,7 +5,7 @@ set -e
 INSTALL_DIR="/opt/docker_container_exporter"
 SERVICE_NAME="docker-container-exporter"
 REPO_URL="https://github.com/luciano-silva-giro/docker_container_exporter.git"
-PORT="${PORT:-9000}"
+PORT="${PORT:-9102}"
 USER="${SUDO_USER:-$USER}"
 
 echo "=== Docker Container Exporter Installation ==="
