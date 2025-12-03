@@ -68,8 +68,28 @@ Group=docker
 WorkingDirectory=$INSTALL_DIR
 Environment="PORT=$PORT"
 ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/containers_running.py
-Restart=always
+
+# Resource Limits
+CPUQuota=50%
+MemoryLimit=256M
+MemoryHigh=200M
+TasksMax=10
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=$INSTALL_DIR
+
+# Restart policy
+Restart=on-failure
 RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=${SERVICE_NAME}
 
 [Install]
 WantedBy=multi-user.target

@@ -65,11 +65,11 @@ def main():
 
     while True:
         try:
-            # Get all containers
-            all_containers = client.containers.list(all=True)
+            # Get all containers with minimal data (sparse=True reduces API overhead)
+            # Only fetch essential attributes to reduce memory and processing
+            all_containers = client.containers.list(all=True, sparse=True)
             total_count = len(all_containers)
-            total_containers_gauge.set(total_count)
-
+            
             # Initialize counts
             running_count = 0
             stopped_count = 0
@@ -78,54 +78,57 @@ def main():
             # Track current container states
             current_states = {}
 
-            # Count containers based on their status and update individual metrics
+            # Process containers in a single pass for efficiency
             for container in all_containers:
-                container_name = container.name
+                # Access attributes directly without intermediate variables when possible
                 container_id = container.short_id
                 status = container.status
                 
                 # Store current state
-                current_states[container_id] = (container_name, status)
+                current_states[container_id] = (container.name, status)
                 
-                # If status changed, clear the old metric
-                if container_id in previous_states:
-                    old_name, old_status = previous_states[container_id]
-                    if old_status != status:
-                        # Remove old status metric
-                        container_state_gauge.remove(old_name, container_id, old_status)
-                
-                # Set state value: 1 for running, 0 for stopped/other
-                state_value = 1 if status == "running" else 0
-                
-                # Update individual container metric
-                container_state_gauge.labels(
-                    container_name=container_name,
-                    container_id=container_id,
-                    status=status
-                ).set(state_value)
-                
-                # Count by status
+                # Count by status (optimized with single conditional)
                 if status == "running":
                     running_count += 1
+                    state_value = 1
                 elif status == "exited":
                     stopped_count += 1
+                    state_value = 0
                 else:
                     others_count += 1
+                    state_value = 0
+                
+                # Only update metrics if state changed (reduces Prometheus overhead)
+                if container_id not in previous_states or previous_states[container_id][1] != status:
+                    # If status changed, clear the old metric
+                    if container_id in previous_states:
+                        old_name, old_status = previous_states[container_id]
+                        if old_status != status:
+                            container_state_gauge.remove(old_name, container_id, old_status)
+                    
+                    # Update individual container metric only on change
+                    container_state_gauge.labels(
+                        container_name=container.name,
+                        container_id=container_id,
+                        status=status
+                    ).set(state_value)
             
             # Remove metrics for containers that no longer exist
-            for old_id, (old_name, old_status) in previous_states.items():
-                if old_id not in current_states:
-                    container_state_gauge.remove(old_name, old_id, old_status)
+            removed_containers = set(previous_states.keys()) - set(current_states.keys())
+            for old_id in removed_containers:
+                old_name, old_status = previous_states[old_id]
+                container_state_gauge.remove(old_name, old_id, old_status)
             
             # Update previous states
             previous_states = current_states
 
-            # Update Prometheus gauges
+            # Update aggregate gauges (always update these)
+            total_containers_gauge.set(total_count)
             running_containers_gauge.set(running_count)
             stopped_containers_gauge.set(stopped_count)
             others_containers_gauge.set(others_count)
 
-            # Log the counts with timestamp in ISO format (Line 49)
+            # Log the counts with timestamp in ISO format
             current_time = datetime.now().astimezone().isoformat()
             print(
                 f"{current_time} - Total: {total_count}, Running: {running_count}, Stopped: {stopped_count}, Others: {others_count}"

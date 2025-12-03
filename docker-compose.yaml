@@ -13,3 +13,12 @@ services:
       - "127.0.0.1:${PORT}:8118"
     privileged: true
     restart: unless-stopped
+    # Resource limits to prevent excessive CPU/memory usage
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
