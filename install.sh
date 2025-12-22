@@ -23,7 +23,6 @@ fi
 # Install dependencies
 echo "Installing system dependencies..."
 if command -v apt-get &> /dev/null; then
-    apt-get update
     apt-get install -y python3 python3-pip python3-venv git
 else
     echo "Unsupported package manager. Please install python3, pip, and git manually."
