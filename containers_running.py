@@ -45,7 +45,7 @@ def main():
     while True:
         try:
             # Use filters to reduce API response size - only get id, names, status
-            all_containers = client.containers.list(all=True, sparse=True)
+            all_containers = client.containers.list(all=True)
             total_count = len(all_containers)
             total_containers_gauge.set(total_count)
 
@@ -55,7 +55,7 @@ def main():
             current_states = {}
 
             for container in all_containers:
-                container_name = container.name
+                container_name = container.attrs['Name'].lstrip('/')
                 container_id = container.short_id
                 status = container.status
 
